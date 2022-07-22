@@ -1,0 +1,95 @@
+{% extends 'ecommerce_app/basic.html' %}
+{% block title %}Checkout {% endblock %}
+
+{% block body %}
+
+<div class="container my-4 rounded-3 border border-dark px-5 py-2">
+    <div class="top-heading d-flex justify-content-between align-items-center">
+        <h2 class="h2 border-dark border-bottom py-2 border-5 rounded-3">Step 1: Review your cart</h2>
+        <a href="/"><button type='button' class='btn btn-secondary my-2' onclick='clearCart();'>Clear Cart</button></a>
+    </div>
+    <div class="col my-3">
+        <ol class="list-group" id="cartList">    
+        </ol>
+    </div>
+    
+    <div class="top-heading d-flex justify-content-start align-items-center">
+        <h2 class="h2 border-dark border-bottom py-2 border-5 rounded-3">Step 2: Enter your details</h2>
+    </div>
+    <div class="container">
+        <form class="row g-3" method="POST">
+          {% csrf_token %}
+          <input required type="hidden" id="itemsJson" name="itemsJson">
+            <div class="col-md-4">
+              <label for="fullname" class="form-label">Full Name</label>
+              <input required type="text" class="form-control" id="fullname" name="name" placeholder="Full Name">
+            </div>
+            <div class="col-md-4">
+              <label for="inputEmail4" class="form-label">Email</label>
+              <input required type="email" class="form-control" id="inputEmail4" name="emailID" placeholder="Email Address">
+            </div>
+            <div class="col-md-4">
+              <label for="phoneno" class="form-label">Phone</label>
+              <input required type="phone" class="form-control" id="phoneno" name="phone" placeholder="Phone Number">
+            </div>
+            <div class="col-12">
+              <label for="inputAddress" class="form-label">Address line 1</label>
+              <input required type="text" class="form-control" id="inputAddress" name="Address1" placeholder="1234 Main St">
+            </div>
+            <div class="col-12">
+              <label for="inputAddress2" class="form-label">Address line 2</label>
+              <input required type="text" class="form-control" id="inputAddress2" name="Address2" placeholder="Apartment, studio, or floor">
+            </div>
+            <div class="col-md-4">
+              <label for="inputCity" class="form-label">City</label>
+              <input required type="text" class="form-control" id="inputCity" placeholder="City" name="city">
+            </div>
+            <div class="col-md-4">
+              <label for="inputState" class="form-label">State</label>
+              <input required id="inputState" class="form-control" placeholder="State" name="state">
+                
+            </div>
+            <div class="col-md-4">
+              <label for="inputZip" class="form-label">Zip</label>
+              <input required type="text" class="form-control" id="inputZip" placeholder="Zip Code" name="zipcode">
+            </div>
+            
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary float-end" onClick="localStorage.clear()">Place Order</button>
+            </div>
+
+            <input required type="hidden" id="amount" name="totalAmount">
+          </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+
+<script>
+    document.getElementById('cart-btn').style.display = 'none';
+    var cart = JSON.parse(localStorage.getItem('cart')) ;
+    
+    $("#itemsJson").val(JSON.stringify(cart))
+
+    
+    var total_price = 0
+    for (var item in cart){
+        var cart_list = ""
+        cart_list = cart_list + '<li class="list-group-item d-flex justify-content-between align-items-start"><div class="ms-2 me-auto">'
+        cart_list = cart_list + '<div class="fw-bold"><h5>'+cart[item][2]+'</h5></div><h6>&#8377;'+cart[item][1]+'</h6></div><span class="badge bg-dark bg-gradient bg-opacity-75 rounded-pill text-center" style="font-size:1.3em;">'+cart[item][0]+'</span></li>' 
+        total_price = total_price + parseInt(cart[item][1])
+        $('#cartList').append(cart_list)
+    }
+        
+    $('#cartList').append('<li class="list-group-item list-group-item-dark"><div class="ms-2 me-auto"><h4 class=" text-end">Grand Total: &#8377;'+total_price+'</h4></div></li>')
+    $('#amount').val(total_price)
+
+    function clearCart(){
+        localStorage.clear();
+        cart = {}
+        localStorage.setItem('cart', JSON.stringify(cart));
+      }
+</script>
+
+{% endblock %}

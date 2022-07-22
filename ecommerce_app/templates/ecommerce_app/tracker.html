@@ -1,0 +1,97 @@
+{% extends 'ecommerce_app/basic.html' %}
+{% block title %} Tracker {% endblock %}
+
+{% block body %}
+<div class="container my-4 rounded-3 border border-dark px-5 py-2">
+    <h2 class="h2 border-dark border-bottom py-2 border-5 rounded-3">Enter Order Details</h2>
+    <div class="container">
+        <form class="row g-3" method="POST" id="TrackerForm">
+          {% csrf_token %}
+          <input type="hidden" id="itemsJson" name="itemsJson">
+            <div class="col-md-4">
+              <label for="orderID" class="form-label">Order ID</label>
+              <input type="text" class="form-control" id="orderID" name="orderId" placeholder="Order ID">
+            </div>
+            <div class="col-md-4">
+              <label for="inputEmail4" class="form-label">Email</label>
+              <input type="email" class="form-control" id="inputEmail4" name="emailID" placeholder="Email Address">
+            </div>
+            <div class="col-md-4">
+              <label for="phoneno" class="form-label">Phone</label>
+              <input type="phone" class="form-control" id="phoneno" name="phone" placeholder="Phone Number">
+            </div>
+            
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary float-end" onClick="localStorage.clear()">Track Order</button>
+            </div>
+          </form>
+
+          <h2 class="h2 border-dark border-bottom py-2 border-5 rounded-3">Your Order Status</h2>
+          <ul class="list-group" id="items">
+          </ul>
+
+          <h2 class="h2 border-dark border-bottom py-2 border-5 rounded-3">Your Order Details</h2>
+          <ul class="list-group" id="orderItems">
+          </ul>
+          
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+  $("#TrackerForm").submit(function(event){
+    $("#items").empty()
+    $("#orderItems").empty()
+    var formData = {
+      'orderId': $("input[name=orderId]").val(),
+      'email': $("input[name=emailID]").val(),
+      'phone': $("input[name=phone]").val(),
+      'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+    };
+
+    $.ajax({
+      type:'POST',
+      url: '/shop/track-order/',
+      data: formData,
+      encode: true,
+    })
+
+    .done(function(data){
+      data = JSON.parse(data)
+      if (data!={} && data.length>0){
+        updates = data[0]
+        for(i=0;i<updates.length;i++){
+          let text = updates[i]['text']
+          let time = updates[i]['time']
+          mystr = '<li class="list-group-item d-flex justify-content-between align-items-start"><div class="ms-2 me-auto"><h5>'+text+'</h5></div><span class="badge bg-dark bg-gradient bg-opacity-75 rounded-pill text-center" style="font-size:1.1em;">'+time+'</span></li>'
+          $('#items').append(mystr)
+        }
+        cart = JSON.parse(data[1])
+      total_price = 0
+      for (var item in cart){
+        cart_list = ""
+        cart_list = cart_list + '<li class="list-group-item d-flex justify-content-between align-items-start"><div class="ms-2 me-auto">'
+        cart_list = cart_list + '<div class="fw-bold"><h5>'+cart[item][2]+'</h5></div><h6>&#8377;'+cart[item][1]+'</h6></div><span class="badge bg-dark bg-gradient bg-opacity-75 rounded-pill text-center" style="font-size:1.3em;">'+cart[item][0]+'</span></li>' 
+        total_price = total_price + parseInt(cart[item][1])
+        $("#orderItems").append(cart_list)
+    }
+    $('#orderItems').append('<li class="list-group-item list-group-item-dark"><div class="ms-2 me-auto"><h4 class=" text-end">Grand Total: &#8377;'+total_price+'</h4></div></li>')
+
+      }
+
+      else{
+        mystr = '<li class="list-group-item d-flex justify-content-between align-items-start"><div class="ms-2 me-auto"><h5>There is no order with above ID </h5></div></li>'
+          $('#items').append(mystr)
+          $('#orderItems').append(mystr)
+      }
+      
+    
+        
+    })
+
+    event.preventDefault();
+  })
+</script>
+{% endblock %}
